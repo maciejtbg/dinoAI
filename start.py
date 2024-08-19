@@ -89,14 +89,49 @@ done,done_cap = env.get_done()
 # plt.imshow(done_cap)
 pytesseract.image_to_string(done_cap)[:4]
 
-for episode in range(10): 
+
+
+import os
+from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3.common import env_checker
+env_checker.check_env(env)
+class TrainAndLoggingCallback(BaseCallback):
+    def __init__(self, check_freq, save_path, verbose=1):
+        super(TrainAndLoggingCallback, self).__init__(verbose)
+        self.check_freq = check_freq
+        self.save_path = save_path
+    
+    def _init_callback(self):
+        if self.save_path is not None:
+            os.makedirs(self.save_path, exist_ok=True)
+    
+    def _on_step(self):
+        if self.n_calls % self.check_freq == 0:
+            model_path = os.path.join(self.save_path, 'best_model_{}'.format(self.n_class))
+            self.model_save(model_path)
+        return True
+    
+CHECKPOINT_DIR = "./train/"
+LOG_DIR = './logs/'
+
+callback = TrainAndLoggingCallback(check_freq=300, save_path=CHECKPOINT_DIR)
+
+from stable_baselines3 import DQN
+model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=300000, learning_starts=1000)
+
+model.learn(total_timesteps=1000, callback=callback)
+
+
+for episode in range(1): 
     print(f'Episode: {episode}.')
     obs = env.reset()
     done = False
     total_reward = 0 
 
     while not done:
-        obs,reward, done, info = env.step(env.action_space.sample())
+        action, _ =model.predict(obs)
+        obs, reward, done, info = env.step(int(action))
+        # obs,reward, done, info = env.step(env.action_space.sample())
         total_reward +=reward
     print(f'Total Reward for episode {episode} is {total_reward}')
-
+    time.sleep(2)
