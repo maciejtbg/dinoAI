@@ -12,10 +12,13 @@ class WebGame(Env):
     def __init__(self):
         super().__init__()
         self.observation_space = Box(low=0, high=255, shape=(1,83,100), dtype=np.uint8)
-        self.action_space = Discrete(3)
+        # self.action_space = Discrete(3)
+        self.action_space = Discrete(2)
+
         self.cap = mss()
-        self.game_location = {'top':150, 'left':130, 'width':250, 'height': 150}
-        self.done_location = {'top':190, 'left':220, 'width':120, 'height':30}
+        # self.game_location = {'top':220, 'left':90, 'width':770, 'height': 150}
+        self.game_location = {'top':220, 'left':170, 'width':200, 'height': 150}
+        self.done_location = {'top':230, 'left':350, 'width':270, 'height':35}
 
     # def step(self, action):
     #     action_map = {
@@ -33,10 +36,14 @@ class WebGame(Env):
     #     return new_observation, reward, done, info
 
     def step(self, action):
+        # action_map = {
+        #     0: 'space',
+        #     1: 'down',
+        #     2: 'no_op'
+        # }
         action_map = {
             0: 'space',
-            1: 'down',
-            2: 'no_op'
+            1: 'no_op',
         }
         if action != 2:
             pydirectinput.press(action_map[action])
@@ -52,10 +59,10 @@ class WebGame(Env):
 
         return new_observation, reward, terminated, truncated, info
     
-    def render(self):
-        cv2.imshow('Game', np.array(self.cap.grab(self.game_location))[:,:,:3])
-        if cv2.waitKey(1) & 0xFF == ord('q'): 
-            self.close()
+    # def render(self):
+    #     cv2.imshow('Game', np.array(self.cap.grab(self.game_location))[:,:,:3])
+    #     if cv2.waitKey(1) & 0xFF == ord('q'): 
+    #         self.close()
 
 
     # def reset(self):
@@ -92,9 +99,9 @@ class WebGame(Env):
     
     def get_observation(self):
         raw = np.array(self.cap.grab(self.game_location))[:, :, :3]  # Pobranie obrazu o rozmiarze (150, 250)
-        gray = cv2.cvtColor(raw, cv2.COLOR_BGR2GRAY)  # Konwersja na obraz w skali szarości
-        resized = cv2.resize(gray, (100, 83))  # Skalowanie do wymiarów (100, 83)
-        observation = np.expand_dims(resized, axis=0)  # Dodanie wymiaru kanału, aby uzyskać kształt (1, 83, 100)
+        # gray = cv2.cvtColor(raw, cv2.COLOR_BGR2GRAY)  # Konwersja na obraz w skali szarości
+        # resized = cv2.resize(raw, (100, 83))  # Skalowanie do wymiarów (100, 83)
+        observation = np.expand_dims(raw, axis=0)  # Dodanie wymiaru kanału, aby uzyskać kształt (1, 83, 100)
         return observation
 
 
@@ -104,7 +111,7 @@ class WebGame(Env):
         done_strings = ['GAME', 'GAHE']
         done = False
         res = pytesseract.image_to_string(done_cap)[:4]
-        print(res)
+        # print(res)
         if res in done_strings:
             done = True
         return done, done_cap
@@ -112,7 +119,7 @@ class WebGame(Env):
 env = WebGame()
 env.reset()
 env.close()
-env.render()
+# env.render()
 # plt.imshow(cv2.cvtColor(env.get_observation()[0], cv2.COLOR_BGR2RGB))
 done, done_cap = env.get_done()
 # plt.imshow(done_cap)
@@ -167,12 +174,13 @@ class TrainAndLoggingCallback(BaseCallback):
 CHECKPOINT_DIR = "./train/"
 LOG_DIR = './logs/'
 
-callback = TrainAndLoggingCallback(check_freq=300, save_path=CHECKPOINT_DIR)
+# callback = TrainAndLoggingCallback(check_freq=300, save_path=CHECKPOINT_DIR)
+callback = TrainAndLoggingCallback(check_freq=1000, save_path=CHECKPOINT_DIR)
 
 from stable_baselines3 import DQN
 model = DQN('CnnPolicy', env, tensorboard_log=LOG_DIR, verbose=1, buffer_size=100000, learning_starts=1000)
 
-model.learn(total_timesteps=1000, callback=callback)
+model.learn(total_timesteps=20000, callback=callback)
 
 
 # for episode in range(1): 

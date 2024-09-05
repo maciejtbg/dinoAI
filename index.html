@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Typing Commands</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        textarea {
+            width: 90%;
+            height: 90%;
+            box-sizing: border-box;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <textarea id="agent-textarea"></textarea>
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Agent Typing Commands</title>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            textarea {
+                width: 90%;
+                height: 90%;
+                box-sizing: border-box;
+                font-size: 24px;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="agent-textarea"></textarea>
+    
+        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+        <script>
+            // Inicjalizacja Socket.IO, połączona z serwerem
+            let socket = io('http://localhost:8080');
+            let textarea = document.getElementById('agent-textarea');
+    
+            // Funkcja do nasłuchiwania działań od serwera
+            socket.on('action', function(data) {
+                if (data.action === ' ') {
+                    console.log('Agent zdecydował: Spacja!');
+                    textarea.value += ' '; // Dodanie spacji do textarea
+                } else if (data.action === 'no-op') {
+                    console.log('Agent zdecydował: no-op!');
+                    // Możesz dodać dodatkową logikę dla 'no-op', jeśli to potrzebne
+                } else {
+                    console.log('Agent zdecydował: brak akcji');
+                }
+            });
+        </script>
+    </body>
+    </html>
+</body>
+</html>
+
+
+
+
